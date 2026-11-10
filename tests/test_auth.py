@@ -52,6 +52,11 @@ class CsrfTests(AppTestCase):
         r = self.client.post("/login", data={"csrf": "nope", "username": "a", "password": "b"})
         self.assertEqual(r.status_code, 400)
 
+    def test_non_ascii_token_rejected_not_crash(self):
+        self.csrf()
+        r = self.client.post("/login", data={"csrf": "café", "username": "a", "password": "b"})
+        self.assertEqual(r.status_code, 400)
+
     def test_post_without_session_token_rejected(self):
         r = self.client.post("/login", data={"csrf": "anything"})
         self.assertEqual(r.status_code, 400)
@@ -117,6 +122,16 @@ class SignupTests(AppTestCase):
                 self.assertEqual(r.status_code, 200)
                 self.assertIn(message, self.text(r))
         self.assertEqual(self.query("SELECT COUNT(*) FROM users")[0][0], 0)
+
+    def test_non_ascii_invite_code_is_rejected_not_crash(self):
+        r = self.signup(invite_code=triptab.INVITE_CODE + "é")
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("invite code isn", self.text(r))
+        self.assertEqual(self.query("SELECT COUNT(*) FROM users")[0][0], 0)
+
+    def test_non_ascii_configured_invite_code_works(self):
+        with mock.patch.object(triptab, "INVITE_CODE", "Zürich"):
+            self.assertEqual(self.signup(invite_code="zürich").status_code, 302)
 
     def test_failed_signup_keeps_form_values(self):
         r = self.signup(password="123")
