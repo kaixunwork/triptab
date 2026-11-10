@@ -42,6 +42,14 @@ Then open http://127.0.0.1:5000.
 - **Invite code** to join: `BKK2026`
 - Change the trip name or invite code with the environment variables `TRIPTAB_NAME` and `TRIPTAB_INVITE`.
 
+## Run the tests
+
+```bash
+python -m unittest discover -s tests -t .
+```
+
+Uses only the standard library's `unittest`. Each test gets a throwaway SQLite database.
+
 ## How it's built
 
 - **Flask** (Python web framework) renders HTML pages on the server.
@@ -53,6 +61,7 @@ Then open http://127.0.0.1:5000.
 app.py           routes, auth, the edit rule, balance maths
 schema.sql       users, expenses, expense_splits
 seed.py          demo data
+tests/           route and money-maths tests (unittest)
 templates/       HTML pages (Jinja)
 static/style.css styles (light and dark mode)
 ```
