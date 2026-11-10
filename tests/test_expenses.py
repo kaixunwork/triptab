@@ -114,6 +114,25 @@ class NewExpenseTests(ExpenseTestCase):
                 self.assertEqual(self.query(
                     "SELECT amount_cents FROM expenses ORDER BY id DESC LIMIT 1")[0][0], cents)
 
+    def test_date_is_stored_as_yyyy_mm_dd(self):
+        # Python 3.11+ fromisoformat accepts these; older versions reject them.
+        for raw in ["20261205", "2026-W49-6"]:
+            with self.subTest(raw=raw):
+                r = self.post("/expenses/new", self.form(spent_on=raw))
+                if r.status_code == 302:
+                    self.assertEqual(self.query(
+                        "SELECT spent_on FROM expenses ORDER BY id DESC LIMIT 1")[0][0], "2026-12-05")
+                else:
+                    self.assertIn("Enter a valid date.", self.text(r))
+        self.assertEqual({r[0] for r in self.query("SELECT spent_on FROM expenses")} - {"2026-12-05"}, set())
+
+    def test_compact_date_sorts_correctly(self):
+        self.make_expense("Later", 100, self.alex, [self.alex], spent_on="2026-12-31")
+        if self.post("/expenses/new", self.form(description="Earlier", spent_on="20261201")).status_code != 302:
+            self.skipTest("this Python rejects compact ISO dates")
+        page = self.text(self.client.get("/expenses"))
+        self.assertLess(page.index("<h2>Later</h2>"), page.index("<h2>Earlier</h2>"))
+
     def test_duplicate_split_ids_are_collapsed(self):
         self.post("/expenses/new", self.form(split_with=[str(self.sam), str(self.sam)]))
         self.assertEqual(self.splits(1), [self.sam])
