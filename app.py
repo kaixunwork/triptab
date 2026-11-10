@@ -266,8 +266,11 @@ def login():
             session.clear()
             session["user_id"] = user["id"]
             nxt = request.args.get("next", "")
-            # Only allow local redirects.
-            if not nxt.startswith("/") or nxt.startswith("//"):
+            # Only allow local redirects. Browsers read a backslash as "/" and
+            # drop tabs/newlines, so "/\evil.com" or "/<TAB>/evil.com" would
+            # act as "//evil.com"; reject those characters outright.
+            if (not nxt.startswith("/") or nxt.startswith("//") or "\\" in nxt
+                    or any(ord(ch) < 32 for ch in nxt)):
                 nxt = url_for("expenses")
             return redirect(nxt)
         flash("Wrong username or password.", "error")

@@ -205,7 +205,8 @@ class LoginTests(AppTestCase):
         self.assertTrue(r.headers["Location"].endswith("/balances"))
 
     def test_next_external_targets_are_ignored(self):
-        for nxt in ["https://evil.com", "//evil.com", "evil.com", ""]:
+        for nxt in ["https://evil.com", "//evil.com", "evil.com", "",
+                    "/\\evil.com", "/%5Cevil.com", "/%09/evil.com", "/%0A/evil.com"]:
             with self.subTest(next=nxt):
                 self.post("/logout")
                 r = self.login(query="?next=" + nxt)
