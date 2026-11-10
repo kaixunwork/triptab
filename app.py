@@ -335,7 +335,9 @@ def parse_expense_form(members):
 
     spent_on = f.get("spent_on", "").strip()
     try:
-        date.fromisoformat(spent_on)
+        # Store the canonical YYYY-MM-DD: on Python 3.11+ fromisoformat also
+        # accepts "20261212" and "2026-W50-1", which would break date sorting.
+        spent_on = date.fromisoformat(spent_on).isoformat()
     except ValueError:
         errors.append("Enter a valid date.")
 
