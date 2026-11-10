@@ -100,7 +100,9 @@ def csrf_token():
 def check_csrf():
     if request.method == "POST":
         sent = request.form.get("csrf", "")
-        if not session.get("csrf") or not secrets.compare_digest(sent, session["csrf"]):
+        # Compare as bytes: compare_digest raises TypeError on non-ASCII str.
+        if not session.get("csrf") or not secrets.compare_digest(
+                sent.encode(), session["csrf"].encode()):
             abort(400, "Form expired - please go back, refresh and try again.")
 
 
@@ -227,7 +229,7 @@ def signup():
         error = None
         if count >= MAX_MEMBERS:
             error = "This trip is full ({} members).".format(MAX_MEMBERS)
-        elif not secrets.compare_digest(code.upper(), INVITE_CODE.upper()):
+        elif not secrets.compare_digest(code.upper().encode(), INVITE_CODE.upper().encode()):
             error = "That invite code isn't right. Ask the trip organiser."
         elif not display_name or len(display_name) > 30:
             error = "Enter a name (up to 30 characters)."
