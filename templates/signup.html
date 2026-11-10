@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Join the trip{% endblock %}
+{% block content %}
+<section class="auth card">
+  <h1>Join the trip</h1>
+  <p class="muted">{{ count }} of {{ max_members }} spots taken.</p>
+  {% if count >= max_members %}
+    <p>Sorry, this trip is full.</p>
+  {% else %}
+  <form method="post">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <label>Invite code
+      <input name="invite_code" value="{{ form.get('invite_code', '') }}" required autofocus>
+    </label>
+    <label>Your name <small class="muted">(what friends see)</small>
+      <input name="display_name" value="{{ form.get('display_name', '') }}" maxlength="30" required>
+    </label>
+    <label>Username
+      <input name="username" value="{{ form.get('username', '') }}" autocomplete="username"
+             pattern="[A-Za-z0-9]{3,20}" title="3-20 letters or numbers" required>
+    </label>
+    <label>Password
+      <input name="password" type="password" autocomplete="new-password" minlength="6" required>
+    </label>
+    <button class="btn primary full">Join</button>
+  </form>
+  {% endif %}
+  <p class="muted center">Already joined? <a href="{{ url_for('login') }}">Log in</a></p>
+</section>
+{% endblock %}

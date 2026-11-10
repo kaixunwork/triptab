@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Expenses{% endblock %}
+{% block content %}
+<section class="stats">
+  <div class="stat"><span>Trip total</span><strong>{{ total|money }}</strong></div>
+  <div class="stat"><span>You paid</span><strong>{{ me.paid|money }}</strong></div>
+  <div class="stat"><span>Your share</span><strong>{{ me.share|money }}</strong></div>
+  <div class="stat {{ 'pos' if me.net > 0 else 'neg' if me.net < 0 }}">
+    <span>{% if me.net > 0 %}You're owed{% elif me.net < 0 %}You owe{% else %}You're square{% endif %}</span>
+    <strong>{{ (me.net if me.net >= 0 else -me.net)|money }}</strong>
+  </div>
+</section>
+
+<div class="list-head">
+  <h1>Expenses <small class="muted">{{ expenses|length }}</small></h1>
+  <a class="btn primary" href="{{ url_for('new_expense') }}">+ Add expense</a>
+</div>
+
+{% if not expenses %}
+  <div class="card empty">
+    <p>No expenses yet.</p>
+    <p class="muted">Paid for something for the group? Add it so everyone can settle up later.</p>
+  </div>
+{% endif %}
+
+<ul class="expenses">
+{% for e in expenses %}
+  <li class="card expense">
+    <div class="expense-main">
+      <div>
+        <h2>{{ e.description }}</h2>
+        <p class="muted">
+          {{ e.spent_on|nicedate }} · <strong>{{ e.payer_name }}</strong> paid ·
+          split {{ e.split|length }} way{{ 's' if e.split|length != 1 }}
+        </p>
+        <p class="chips">
+          {% for m in e.split %}<span class="chip {{ 'me' if m.id == g.user.id }}">{{ m.name }}</span>{% endfor %}
+        </p>
+      </div>
+      <div class="amount">
+        <strong>{{ e.amount_cents|money }}</strong>
+        {% if g.user.id in e.shares %}
+          <small class="muted">your share {{ e.shares[g.user.id]|money }}</small>
+        {% else %}
+          <small class="muted">not involved</small>
+        {% endif %}
+      </div>
+    </div>
+    <div class="expense-foot">
+      {% if e.created_by == g.user.id %}
+        <span class="muted">Added by you</span>
+        <span class="actions">
+          <a class="btn small" href="{{ url_for('edit_expense', expense_id=e.id) }}">Edit</a>
+          <form method="post" action="{{ url_for('delete_expense', expense_id=e.id) }}" class="inline"
+                onsubmit='return confirm({{ ("Delete “" ~ e.description ~ "”? This cannot be undone.")|tojson }});'>
+            <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+            <button class="btn small danger">Delete</button>
+          </form>
+        </span>
+      {% else %}
+        <span class="muted" title="Only {{ e.creator_name }} can edit this">🔒 Added by {{ e.creator_name }}</span>
+      {% endif %}
+    </div>
+  </li>
+{% endfor %}
+</ul>
+<p class="muted center"><small>{{ member_total }} of {{ max_members }} trip members</small></p>
+{% endblock %}

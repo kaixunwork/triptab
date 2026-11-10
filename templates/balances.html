@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Balances{% endblock %}
+{% block content %}
+<h1>Settle up</h1>
+{% if payments %}
+  <p class="muted">The fewest payments that make everyone square:</p>
+  <ul class="payments">
+    {% for p in payments %}
+      <li class="card payment {{ 'mine' if g.user.id in (p.from_id, p.to_id) }}">
+        <span><strong>{{ 'You' if p.from_id == g.user.id else p.from }}</strong>
+          → <strong>{{ 'you' if p.to_id == g.user.id else p.to }}</strong></span>
+        <strong class="amount">{{ p.amount|money }}</strong>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <div class="card empty"><p>Everyone is square. 🎉</p></div>
+{% endif %}
+
+<h2>Who paid what</h2>
+<div class="card table-wrap">
+  <table>
+    <thead><tr><th>Member</th><th>Paid</th><th>Share</th><th>Balance</th></tr></thead>
+    <tbody>
+      {% for s in stats %}
+        <tr class="{{ 'me' if s.id == g.user.id }}">
+          <td>{{ s.name }}{{ ' (you)' if s.id == g.user.id }}</td>
+          <td>{{ s.paid|money }}</td>
+          <td>{{ s.share|money }}</td>
+          <td class="{{ 'pos' if s.net > 0 else 'neg' if s.net < 0 }}">
+            {% if s.net > 0 %}+{% endif %}{{ s.net|money }}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="muted"><small>Balance = paid − share. Positive means the group owes them.</small></p>
+{% endblock %}

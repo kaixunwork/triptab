@@ -1,0 +1,10 @@
+# Secrets and local data - never commit
+.secret_key
+triptab.db
+
+# Python
+__pycache__/
+*.pyc
+
+# Local tooling
+.claude/

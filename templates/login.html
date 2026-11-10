@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<section class="auth card">
+  <h1>Log in</h1>
+  <p class="muted">Track who paid for what on <strong>{{ trip_name }}</strong>.</p>
+  <form method="post">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <label>Username
+      <input name="username" value="{{ username }}" autocomplete="username" required autofocus>
+    </label>
+    <label>Password
+      <input name="password" type="password" autocomplete="current-password" required>
+    </label>
+    <button class="btn primary full">Log in</button>
+  </form>
+  <p class="muted center">
+    {% if count < max_members %}
+      New to the trip? <a href="{{ url_for('signup') }}">Join with an invite code</a>
+      <br><small>{{ count }} of {{ max_members }} spots taken</small>
+    {% else %}
+      This trip is full ({{ max_members }} of {{ max_members }}).
+    {% endif %}
+  </p>
+</section>
+{% endblock %}
